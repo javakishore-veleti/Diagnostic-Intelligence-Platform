@@ -323,6 +323,27 @@ For large milestones, use separate Claude Code sessions:
 
 The same session may perform all three only when context remains reliable and each transition is explicit.
 
+### 6.7 Superpowers skills
+
+The `superpowers` plugin is enabled for this project (`.claude/settings.json`). It supplies the execution technique; this guide supplies the product boundaries. **Where they differ, this file wins** — see Section 2.
+
+| Superpowers skill | Use it for | Governed by |
+|---|---|---|
+| `brainstorming` | Orienting a new capability, surfacing unknowns before a plan exists | Feeds `DECISION-QUEUE.md`; unresolved PRD §27 items still block (§21.1) |
+| `writing-plans` | Drafting the technical plan for one work package | Must map to PRD requirement IDs and respect §8 planning requirements |
+| `executing-plans` | Working a plan through to completion | §6.1 lifecycle; checkpoint per §23 |
+| `subagent-driven-development`, `dispatching-parallel-agents` | Delegating bounded, non-overlapping tasks | Requires explicit owner authorization first (§9) |
+| `test-driven-development` | Red/green cycle on domain rules and state transitions | §15.2 coverage requirements |
+| `verification-before-completion` | Gate before declaring work done | §15.1 verification ladder and §20.3 definition of done |
+| `requesting-code-review`, `receiving-code-review` | Reviewing a diff before handoff | §10.3 diff discipline, §17 security checklist |
+| `systematic-debugging` | Diagnosing a failure | §22 failure recovery |
+| `using-git-worktrees`, `finishing-a-development-branch` | Branch and worktree mechanics | §10.2 — no branch, commit, push, or PR without authorization |
+| `writing-skills` | Authoring a project skill | §20.1 — only through a reviewed work package |
+
+**Plan file location.** `writing-plans` defaults to `docs/superpowers/plans/YYYY-MM-DD-<feature>.md`. That path is acceptable for the technical plan itself, but it is **not** the durable state of record: `Docs/Execution/CURRENT-WORK.md` remains authoritative per Section 7, and must link to the plan file rather than be replaced by it. A resuming agent reads `CURRENT-WORK.md` first.
+
+**What the plugin does not supply.** It has no knowledge of the PRD, requirement IDs, capability and schema ownership, the synthetic-data policy, or the intelligence boundary. Those checks stay with this file and Section 26's self-check. A superpowers skill saying work is complete does not satisfy §20.3.
+
 ---
 
 ## 7. Durable Execution State

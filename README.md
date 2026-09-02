@@ -299,6 +299,8 @@ defines verification commands. Wait for my approval before creating files.
 
 `CLAUDE.md` carries the full long-running-agent operating model: work-package lifecycle, durable execution state, checkpoint protocol, architectural guardrails, security checklist, and handoff format.
 
+The [`superpowers`](https://github.com/obra/superpowers) plugin is enabled for this repository in `.claude/settings.json`, adding skills for brainstorming, plan authoring and execution, red/green TDD, systematic debugging, and code review. It provides execution technique only — `CLAUDE.md` §6.7 defines how those skills map onto this project's work packages, and the product boundaries in `PRD.md` take precedence over anything a skill suggests.
+
 ### Planned local-development interface
 
 When its milestone lands, the whole environment comes up through five scripts that work from any directory:
