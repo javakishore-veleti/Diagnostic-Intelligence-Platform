@@ -4,105 +4,206 @@
 
 Built to production engineering standards — capability-owned data, versioned contracts, migrations, observability, security review, and CI from the first slice — and run entirely on synthetic data.
 
+> **Project status: planning and architecture.** The platform is being implemented incrementally. Anything described below as *planned* does not exist yet. See [Current status](#current-status).
+
 > **Synthetic data, non-clinical.** Every person, order, specimen, and result is generated. The platform is not cleared or intended for clinical use, makes no diagnostic or treatment recommendation, and claims no HIPAA compliance, CLIA certification, or FDA clearance. It is vendor-neutral and derived from no real laboratory company's systems, data, or documents.
 
 ---
 
-## The business problem
+## The problem
 
 A diagnostic laboratory runs on a simple promise: a sample is collected, it moves through the lab, and a trustworthy result comes back on time. The value is created — and lost — in the gap between those events.
 
 Two things go wrong in that gap.
 
-**Members are left in the dark.** An order is placed and then goes quiet. Where is my sample? Is something wrong? Is the result ready? Absent an answer, people call — and each call costs the business more than the test.
+**Members are left in the dark.** An order is placed and then goes quiet. Where is my sample? Is something wrong? Is the result ready? Absent an answer, people call — and each call can cost more than the test.
 
-**Operations teams work blind across systems.** When a specimen stalls, the answer lives in fragments: order state here, specimen custody there, an exception code somewhere else, and the actual procedure buried in a document nobody can find quickly. Investigating one delayed specimen means assembling that story by hand, over and over, hundreds of times a day.
+**Operations teams work blind across systems.** When a specimen stalls, the answer lives in fragments: order state in one system, specimen custody in another, an exception code in a third, and the actual procedure buried in a document nobody can find quickly. Investigating one delayed specimen means assembling that story by hand, hundreds of times a day.
 
-This platform closes both gaps. It gives members a clear, honest view of their own diagnostic journey, and it gives operations a single place to see the whole picture — with an assistant that assembles the evidence and cites the procedure, so a five-minute investigation becomes a five-second one.
+This platform closes both gaps. It gives members a clear, honest view of their own diagnostic journey, and it gives operations a single place to see the whole picture — with an assistant that assembles the evidence and cites the procedure, turning a five-minute investigation into a five-second one.
+
+Laboratory information is normally spread across member records, test catalogs, orders, specimens, results, operational events, and procedural documentation. Bringing that together as one platform is what this project builds:
+
+- Business-capability-aligned services with clear data ownership.
+- Member and operations web experiences.
+- Reproducible synthetic healthcare and laboratory data.
+- Deterministic order, specimen, result, and exception processing.
+- Grounded knowledge retrieval with traceable citations.
+- Bounded, read-only assistant tool orchestration.
+- Streaming responses with deterministic event ordering.
+- Software and AI-specific quality evaluation.
+- Local container orchestration and an incremental AWS delivery path.
 
 ---
 
 ## What the platform delivers
 
-### For members — the diagnostic journey, visible
+### DiagnosticServices — the member experience
 
-Browse available tests, see what was ordered and why, follow a specimen from collection through transit and processing, and read released results with reference ranges and flags in plain language. No phone call required.
+The diagnostic journey, made visible:
 
-### For laboratory operations — investigation, not archaeology
+- Secure access to a member profile.
+- Laboratory order history and order detail.
+- Specimen status and a chronological processing timeline.
+- Released results with reference ranges, units, and flags.
+- Plain-language, explicitly non-diagnostic result information.
+- An assistant limited to that member's authorized records and approved knowledge.
 
-See every order and specimen end to end, triage exceptions and delays as they emerge, search across the whole operation, administer the test catalog and the knowledge library, generate and refresh synthetic datasets, and review the quality of the intelligence layer itself.
+### DiagnosticsAdmin — the operations experience
 
-### For both — an assistant that shows its work
+Investigation, not archaeology:
 
-Ask *why is this specimen delayed, and what does the procedure say to do next?* and get an answer that combines live operational facts with the relevant, cited section of the standard operating procedure.
+- Operational dashboards for the working queue.
+- Search by member, order, specimen, test, or correlation identifier.
+- End-to-end order and specimen investigation in one view.
+- Deterministic delay and exception identification.
+- Test-catalog and reference-data management.
+- Knowledge-source ingestion, validation, publication, and retirement.
+- Synthetic dataset generation and validation.
+- Assistant evaluation and configuration comparison.
+- Platform health and observability access.
 
-The assistant is deliberately constrained, and that constraint is the product. Authoritative facts — order state, specimen timeline, result values, who is allowed to see what, when things happened — come from the deterministic services that own them, never from the model. The assistant reads; it never writes. It explains and cites; it is never the system of record. If evidence is missing or conflicting, it says so rather than inventing a plausible answer. And it does not diagnose, recommend treatment, or replace a clinician.
+### The assistant — answers that show their work
 
-The result is an intelligence layer you can put in front of an operations team without asking them to trust a black box: every answer traces back to the exact data and document version that produced it.
+Ask *why is this specimen delayed, and what does the procedure say to do next?* and get an answer combining live operational facts with the cited section of the relevant standard operating procedure.
+
+Every answer traces back to the exact tool results and document version that produced it. That traceability is the point: an operations team can act on the answer without being asked to trust a black box.
+
+---
+
+## Product principles
+
+1. **Business capabilities before technical components.** Top-level areas describe what the platform provides; RAG, embeddings, pgvector, and vLLM stay implementation details beneath them.
+2. **Deterministic facts before generated explanations.** Orders, specimen states, results, authorization, and timestamps always come from authoritative services.
+3. **Evidence before conclusions.** Responses cite structured records or approved knowledge, and state plainly when evidence is incomplete.
+4. **Synthetic data only.** Real patient, employer, or proprietary laboratory information is prohibited.
+5. **Incremental delivery.** The platform grows through small, tested vertical slices — never by generating every planned service at once.
+6. **Replaceable model infrastructure.** Applications reach models through an internal OpenAI-compatible abstraction, not a direct dependency on one provider.
+7. **Quality and observability are product capabilities.** Testing, evaluation, tracing, metrics, and auditability ship with each feature, not after.
+
+---
+
+## Architecture at a glance
+
+```mermaid
+flowchart TB
+    P["Portals<br/>DiagnosticServices · DiagnosticsAdmin"]
+    E["Experience Services<br/>composition · authorization · streaming"]
+    L["Laboratory Services<br/>Members · Catalog · Orders · Specimens · Results"]
+    I["Diagnostic Intelligence<br/>Assistant · Knowledge · Insights · Quality"]
+    D["Data and Platform Services<br/>PostgreSQL · pgvector · identity · observability"]
+
+    P --> E
+    E --> L
+    E --> I
+    L --> D
+    I --> D
+```
+
+Three rules keep this honest as it grows:
+
+1. **Portals stay behind their experience API.** Each portal talks to exactly one experience service, which composes from business capabilities. A portal never calls a laboratory service directly.
+2. **Every capability owns its data.** Local development runs a single PostgreSQL instance, but each capability owns a logical schema (`lab_order`, `specimen`, `result`, `catalog`, `customer`, `knowledge`, `assistant`, `quality`) and no service reads another's tables. Integration goes through versioned APIs, events, or deliberately owned read models.
+3. **Business language at the boundary.** Folders and services are named for what they do for the business (`KnowledgeServices`), not how they are built (`RagService`).
+
+### Business capabilities
+
+| Capability | Responsibility |
+|---|---|
+| `ExperienceServices` | Portal-specific composition, authorization, response shaping, assistant streaming |
+| `CustomerServices` | Synthetic member identity and profile projections |
+| `TestCatalogServices` | Versioned test definitions and terminology mappings |
+| `LabOrderServices` | Laboratory orders, ordered tests, order state, order events |
+| `SpecimenServices` | Specimens, lifecycle state, timelines, specimen events |
+| `ResultServices` | Results, panels, flags, release, and correction history |
+| `AssistantServices` | Bounded conversations, approved tools, model access, safety, streaming |
+| `KnowledgeServices` | Documents, versions, chunking, embeddings, retrieval, citations |
+| `InsightsServices` | Deterministic delays, exceptions, turnaround insights, operational summaries |
+| `QualityServices` | Retrieval, answer, tool-use, safety, latency, and regression evaluation |
+
+The capability map is the target shape, not the day-one deployable count. Early milestones combine related capabilities into a few modular applications while preserving module and data-ownership boundaries, so they can be extracted later.
+
+---
+
+## The intelligence boundary
+
+The assistant is an explanation and investigation capability — not a diagnosis engine. The constraint is the product, and it is enforced in the services rather than requested in a prompt.
+
+**It may:**
+
+- Retrieve published knowledge.
+- Read authorized order, specimen, result, and catalog facts through approved tools.
+- Summarize evidence and explain operational delays.
+- Provide citations and state uncertainty.
+
+**It may not:**
+
+- Diagnose a condition or recommend treatment.
+- Access another member's records.
+- Invent missing operational or clinical facts.
+- Execute arbitrary HTTP, SQL, shell, or filesystem operations.
+- Directly create or change authoritative laboratory records.
+- Be treated as a system of record.
+
+Tools are allowlisted, schema-validated, bounded, and read-only. Where evidence is missing or conflicting, the assistant returns an explicit limitation rather than a plausible invention.
 
 ---
 
 ## The data
 
-Everything the platform runs on is synthetic, reproducible, and openly sourced — the trust story is part of the product.
+Everything the platform runs on is synthetic, reproducible, and openly sourced — the provenance story is part of the product.
 
-| What | Where it comes from |
+| Data need | Source | Policy |
+|---|---|---|
+| Synthetic people and clinical records | Synthea FHIR R4 | Generator version pinned, provenance recorded |
+| Laboratory terminology | LOINC | Used under license, release version recorded, required subsets only |
+| Test catalog | Project-authored, mapped to LOINC | Original codes such as `LAB-10001` |
+| Orders, specimens, events, results | Project synthetic-data generator | Deterministic and repeatable at configurable volumes |
+| Operational procedures | Project-authored synthetic SOPs | Clearly labeled as synthetic |
+| Domain context | Approved public or licensed references | Source and terms metadata stored, no bulk scraping |
+
+Real patient data, protected health information, prior-employer material, proprietary laboratory documents, and bulk-scraped commercial content are prohibited — enforced in review, not merely preferred. The project copies no commercial laboratory's identifiers, catalog, documents, or internal workflows.
+
+The model follows the shape of the real domain: a **member** places a **laboratory order** for one or more **tests**; a **specimen** is collected against that order and moves through custody and processing; **results** are produced, validated, and released; and every meaningful transition emits an immutable **operational event**. Delays and exceptions are *derived* from that authoritative state and versioned rules — computed facts, never model opinions.
+
+---
+
+## Technology
+
+Production-style choices, each made for a reason. Final versions are pinned through Architecture Decision Records before implementation.
+
+| Area | Baseline |
 |---|---|
-| Synthetic people and their clinical histories | **Synthea** FHIR R4, generator version pinned, provenance recorded |
-| Laboratory terminology | **LOINC**, used under its license, release version recorded, only required subsets imported |
-| Test catalog | Project-authored, using project codes such as `LAB-10001`, mapped to LOINC |
-| Orders, specimens, results, events, exception scenarios | Project-owned generator — deterministic and repeatable at configurable volumes |
-| Procedures and workflow guidance | Project-authored synthetic SOPs, clearly labeled as synthetic |
-| Domain context | Approved public references, stored with source and terms metadata |
+| Business services | Java 21+ LTS, Spring Boot 3.x |
+| Web experiences | Angular and TypeScript, single workspace |
+| Intelligence and data processing | Python, where independently justified |
+| Primary and vector storage | PostgreSQL with pgvector |
+| Identity | Keycloak with OAuth 2.0 / OIDC locally, replaceable in cloud |
+| Model serving | vLLM through an OpenAI-compatible model-access layer |
+| API contracts | OpenAPI 3.1 with RFC 9457 problem details |
+| Database migrations | Versioned migrations, Flyway for Java-owned schemas |
+| Observability | OpenTelemetry, Prometheus, Grafana, structured logs |
+| Local runtime | Docker and Docker Compose |
+| CI/CD | GitHub Actions |
+| Cloud infrastructure | Terraform and AWS |
 
-Real patient data, protected health information, prior-employer material, proprietary laboratory documents, and bulk-scraped commercial content are prohibited — as a rule enforced in review, not just a preference.
+**Serving the model.** **vLLM** hosts the open-weight generative model behind an **OpenAI-compatible endpoint**. Continuous batching and paged attention are what make concurrent streaming responses viable on a single GPU, and the project measures that claim directly: a plain Hugging Face inference baseline is benchmarked separately, then compared against vLLM on time-to-first-token, inter-token latency, output tokens per second, and throughput under concurrency.
 
-The data model follows the shape of the real domain: a **customer** places a **laboratory order** for one or more **tests**; a **specimen** is collected against that order and moves through custody and processing; **results** are produced, validated, and released; and every meaningful transition emits an immutable **operational event**. Exceptions and delays are *derived* from that authoritative state and versioned rules — computed facts, not model opinions.
+**Keeping the model replaceable.** Every service reaches the model through an internal OpenAI-compatible abstraction. vLLM is the initial runtime; OpenAI, Azure OpenAI, or Amazon Bedrock can replace it through an adapter without touching a portal API or any laboratory domain logic. Model, prompt, retrieval, and safety-policy versions are recorded with every execution.
 
----
+**Grounding the answers.** **pgvector** provides vector search inside the primary PostgreSQL instance, so retrieval works without operating a separate vector store on day one. Documents are versioned, parsed, chunked, and embedded; retrieval runs only against published knowledge versions and preserves source, document version, section, chunk ID, and score, so every citation is real and traceable. Responses stream over Server-Sent Events with ordered, monotonic sequence numbers, and correlation identifiers propagate across every request path.
 
-## The applications
-
-Two portals, each served by its own experience layer, over a set of business capabilities that own their data.
-
-**DiagnosticServices** — the member portal. Catalog, orders, specimen progress, released results, and the assistant.
-
-**DiagnosticsAdmin** — the operations portal. Operational dashboard, cross-capability search, investigation workspace, catalog and knowledge administration, synthetic data jobs, and intelligence-quality reporting.
-
-Behind them:
-
-- **Laboratory services** own the record — customers, test catalog, orders, specimens, and results. Each owns its data outright.
-- **Diagnostic intelligence** provides the assistant, the knowledge library and retrieval, deterministic operational insights, and the evaluation harness that measures answer quality.
-- **Experience services** compose and authorize for one portal each. A portal never reaches past its experience API, and an experience service never owns laboratory data.
-
-Three rules keep this honest as it grows: portals stay behind their experience API; every capability owns its schema and nobody reads anyone else's tables; and folders are named for what they do for the business (`KnowledgeServices`) rather than how they are built (`RagService`).
+**Deliberately absent.** Redis, Kafka, Kubernetes, and a standalone vector database are not initial defaults. Each is a real tool with a real operational cost, and each is introduced only when a documented requirement and an accepted decision record justify it. Restraint here is a design goal, not an oversight.
 
 ---
 
-## The technology
+## Repository organization
 
-Production-style choices, each made for a reason.
-
-**Applications and services** — Angular and TypeScript for both portals in a single workspace. Java 21 LTS with Spring Boot 3.x for the business services. Python for the AI and knowledge services, where the ecosystem is strongest.
-
-**Data** — PostgreSQL as the primary store, with capability-owned logical schemas and Flyway migrations. **pgvector** provides vector search *inside* the same database, so retrieval works without operating a separate vector store on day one.
-
-**Serving the model** — **vLLM** hosts the open-weight generative model, exposing an **OpenAI-compatible endpoint**. Continuous batching and paged attention are what make concurrent streaming responses viable on a single GPU, and the project measures that directly: a plain Hugging Face inference baseline is benchmarked separately, then compared against vLLM on time-to-first-token, inter-token latency, tokens per second, and throughput under concurrency.
-
-**Keeping the model replaceable** — every service reaches the model through an internal OpenAI-compatible abstraction. vLLM is the initial runtime; OpenAI, Azure OpenAI, or Amazon Bedrock can take its place through an adapter without touching a single portal API or any laboratory domain logic. Model, prompt, retrieval, and safety-policy versions are all recorded with each execution.
-
-**Grounding the answers** — documents are versioned, parsed, chunked, and embedded; retrieval runs against published knowledge versions only and preserves source, document version, section, chunk ID, and score, so every citation is real and traceable. Responses stream over Server-Sent Events with ordered, monotonic sequence numbers.
-
-**Contracts and operations** — OpenAPI 3.1 contracts under version control, RFC 9457 problem details for errors, correlation IDs on every request path. OpenTelemetry, Prometheus, and Grafana for traces, metrics, and dashboards — including AI-specific telemetry across retrieval, tools, and model calls. Keycloak for identity locally. Docker Compose locally, Terraform and GitHub Actions for AWS.
-
-**Deliberately absent** — Kafka, Redis, Kubernetes, and a standalone vector database. Each is a real tool with a real cost, and each is introduced only when a documented requirement and an accepted decision record justify it. Restraint is a design goal here, not an oversight.
-
----
-
-## Repository structure
+The target monorepo is organized by business responsibility:
 
 ```text
 diagnostic-intelligence-platform/
+├── README.md
 ├── PRD.md                          Product requirements — the source of truth
 ├── CLAUDE.md                       Operating guide for coding agents
 ├── REQUIREMENTS-ARCHITECTURE.md    Architecture constraints and views
@@ -116,8 +217,8 @@ diagnostic-intelligence-platform/
 │
 ├── Middleware/
 │   ├── ExperienceServices/         Composition and authorization, one per portal
-│   ├── LaboratoryServices/         Systems of record — customers, catalog,
-│   │                                 orders, specimens, results, notifications
+│   ├── LaboratoryServices/         Systems of record — members, catalog, orders,
+│   │                                 specimens, results, notifications
 │   ├── DiagnosticIntelligence/     Assistant, knowledge and retrieval,
 │   │                                 operational insights, evaluation quality
 │   └── SharedServices/             Cross-cutting contracts and conventions only
@@ -141,32 +242,66 @@ diagnostic-intelligence-platform/
     └── Execution/                  Durable work state for long-running agents
 ```
 
-Capability folders appear when their milestone begins, carrying a short boundary README until then. The tree is never scaffolded as empty modules ahead of the work.
+This tree is the destination. Unimplemented capabilities are not scaffolded as empty deployable services to reproduce it — a capability folder carries a short boundary README until its milestone begins.
 
 ---
 
-## Roadmap
+## Delivery roadmap
 
-| Phase | What it delivers |
-|---|---|
-| **1 — Deterministic foundation** | Both portals and their experience APIs, test catalog, orders and specimens, synthetic data, search and detail views, deterministic timelines and delay calculation, one-command local stack, contracts, migrations, observability baseline, CI |
-| **2 — Results and grounded knowledge** | Customer and result capabilities, Synthea ingestion, LOINC mapping, synthetic SOPs, chunking and embeddings, pgvector retrieval with citations, a knowledge-grounded assistant, evaluation baseline |
-| **3 — Tool-assisted intelligence** | Read-only tool calling across capabilities, evidence-backed delay investigation, streamed responses, conversation history, full traces across retrieval, tools, and model |
-| **4 — Cloud and LLMOps** | Terraform-managed AWS, build/scan/publish/deploy/rollback pipelines, managed PostgreSQL, GPU-backed model serving, evaluation gates and operational dashboards |
+| Phase | Focus | Status |
+|---|---|---|
+| **Milestone 0** | Architecture decisions, repository foundation, conventions, CI, local PostgreSQL and identity | Planned |
+| **Phase 1 — Deterministic foundation** | Synthetic catalog, orders, specimens, timelines, delay rules, both portals and their experience APIs, contracts, migrations, observability baseline | Planned |
+| **Phase 2 — Results and grounded knowledge** | Members, Synthea and LOINC ingestion, results, knowledge lifecycle, pgvector retrieval with citations, evaluation baseline | Planned |
+| **Phase 3 — Tool-assisted intelligence** | Bounded read-only assistant tools, evidence-backed delay investigation, deterministic streaming, quality evaluation, full traces | Planned |
+| **Phase 4 — Cloud and LLMOps** | Terraform, AWS delivery, performance, resilience, security, cost controls, evaluation gates and dashboards | Planned |
 
-Phase 1 is designed to be genuinely useful *without* generative AI. The intelligence layer augments a platform that already works on its own.
-
----
-
-## Status
-
-**Pre-implementation.** The repository currently holds the product requirements and the agent operating guide. Application code, the local stack, and the supporting documents referenced above are not yet created — Milestone 0 settles the foundational decisions that must precede any scaffolding.
+The roadmap describes sequencing, not a promise that any target component already exists. Phase 1 is deliberately useful *without* generative AI — the intelligence layer augments a platform that already works on its own.
 
 ---
 
-## Running it locally
+## Current status
 
-Once the stack exists, the whole environment comes up through five scripts that work from any directory:
+The product definition and the agent operating model are complete. Application scaffolding and technology-version selection have intentionally not started.
+
+The next approved activities are:
+
+1. Establish Milestone 0 work packages.
+2. Decide the smallest initial deployable boundaries.
+3. Create the required foundational ADRs.
+4. Select and pin supported framework versions.
+5. Implement one deterministic vertical slice before introducing model infrastructure.
+
+---
+
+## Getting started
+
+Application code has not been generated yet. The first implementation activity is Milestone 0 planning and architecture decisions.
+
+### Planning with Claude Code
+
+With `PRD.md` and `CLAUDE.md` at the repository root:
+
+```bash
+cd diagnostic-intelligence-platform
+claude
+```
+
+Start in Plan Mode and use:
+
+```text
+Read CLAUDE.md and PRD.md completely. Inspect the repository and git status
+without generating application code. In Plan Mode, create a proposed Milestone 0
+work-package plan that maps tasks to PRD requirement IDs, recommends the smallest
+initial deployable boundaries, identifies required ADRs and owner decisions, and
+defines verification commands. Wait for my approval before creating files.
+```
+
+`CLAUDE.md` carries the full long-running-agent operating model: work-package lifecycle, durable execution state, checkpoint protocol, architectural guardrails, security checklist, and handoff format.
+
+### Planned local-development interface
+
+When its milestone lands, the whole environment comes up through five scripts that work from any directory:
 
 ```bash
 ./DevOps/Local/docker-all-up.sh      core      # database + identity
@@ -175,21 +310,54 @@ Once the stack exists, the whole environment comes up through five scripts that 
 ./DevOps/Local/docker-all-down.sh              # stop, data preserved
 ```
 
-Profiles: `core` (PostgreSQL and Keycloak), `intelligence` (model runtime and embeddings), `observability` (collector, metrics, dashboards), `all`. The GPU-dependent model runtime stays optional — a lightweight OpenAI-compatible stub or a configured remote provider keeps development moving without a GPU. Services can run from an IDE while infrastructure runs in containers.
+Profiles: `core` (PostgreSQL and Keycloak), `intelligence` (model runtime and embeddings), `observability` (collector, metrics, dashboards), `all`. The GPU-dependent model runtime stays optional — a lightweight OpenAI-compatible stub or a configured remote provider keeps development moving without a GPU, and services can run from an IDE while infrastructure runs in containers.
+
+These are planned contracts and should not be expected to work until their milestone is marked implemented. `LOCAL-DEVELOPMENT.md` will become the authoritative setup and troubleshooting guide.
 
 ---
 
-## Documentation
+## Documentation map
 
 | Document | Purpose |
 |---|---|
-| `PRD.md` | Product requirements, personas, capabilities, requirement IDs, acceptance criteria |
-| `CLAUDE.md` | Operating guide for Claude Code and other coding agents |
-| `REQUIREMENTS-ARCHITECTURE.md` | Architecture constraints and views |
-| `Docs/ADR/` | Accepted architecture decisions |
+| `README.md` | Project introduction, current status, and navigation |
+| `PRD.md` | Product scope, users, requirements, safety boundaries, phases, acceptance criteria |
+| `CLAUDE.md` | Operating guide for long-running Claude Code planning and implementation sessions |
+| `REQUIREMENTS-ARCHITECTURE.md` | Architecture, service boundaries, data flows, deployment views, quality attributes |
+| `LOCAL-DEVELOPMENT.md` | Local prerequisites, startup, verification, troubleshooting, shutdown |
+| `SECURITY.md` | Security policy, threat boundaries, vulnerability handling, responsible-AI controls |
+| `Docs/ADR/` | Accepted material architecture and technology decisions |
 | `Docs/API/` | Versioned OpenAPI and event contracts |
+| `Docs/Execution/` | Durable roadmap, current work, decision queue, risks, resumable session state |
 
 Requirement IDs (`FR-AST-004`, `NFR-PERF-001`, …) are stable and referenced from issues, tests, and pull requests.
+
+---
+
+## Responsible use
+
+This platform is not a medical device, clinical decision-support system, diagnostic service, or production healthcare application. It must not be used with real patient data or to inform medical decisions.
+
+Any generated explanation is illustrative output over synthetic records. Medical interpretation belongs to qualified healthcare professionals.
+
+---
+
+## Attribution and independence
+
+This is an independent, vendor-neutral project informed by general laboratory-services workflows and public healthcare interoperability standards. It is not affiliated with, endorsed by, or derived from the proprietary systems of Quest Diagnostics or any other healthcare organization.
+
+---
+
+## Contributing
+
+Full contribution guidance is defined during Milestone 0. Until then:
+
+- Read `PRD.md` and `CLAUDE.md` before proposing implementation.
+- Map changes to stable PRD requirement IDs.
+- Use synthetic data only.
+- Preserve business capability and data-ownership boundaries.
+- Propose one bounded, verifiable work package at a time.
+- Do not introduce new runtime technologies without an accepted requirement and ADR.
 
 ---
 
