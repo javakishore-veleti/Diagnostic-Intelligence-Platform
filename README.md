@@ -291,11 +291,29 @@ claude
 Start in Plan Mode and use:
 
 ```text
-Read CLAUDE.md and PRD.md completely. Inspect the repository and git status
-without generating application code. In Plan Mode, create a proposed Milestone 0
-work-package plan that maps tasks to PRD requirement IDs, recommends the smallest
-initial deployable boundaries, identifies required ADRs and owner decisions, and
-defines verification commands. Wait for my approval before creating files.
+Use the Superpowers framework, subject to CLAUDE.md and PRD.md.
+
+This session is planning only: no code, no branch or worktree, no commits,
+no subagents.
+
+Read PRD.md and CLAUDE.md completely. Use the brainstorming skill only to
+identify unresolved Milestone 0 decisions — do not reopen decisions already
+settled in the PRD. Then use writing-plans to propose the smallest Milestone 0
+work package, mapping every task to PRD requirement IDs and recommending the
+smallest initial deployable boundaries. Wait for my approval before creating
+files.
+```
+
+Once the plan is approved:
+
+```text
+Execute only the approved work package using Superpowers.
+
+Use test-driven development for deterministic behavior and maintain
+Docs/Execution/CURRENT-WORK.md as the durable checkpoint. Ask before creating
+a branch or worktree and before dispatching any subagent. Run
+verification-before-completion and code review before reporting completion.
+Do not push or merge.
 ```
 
 `CLAUDE.md` carries the full long-running-agent operating model: work-package lifecycle, durable execution state, checkpoint protocol, architectural guardrails, security checklist, and handoff format.

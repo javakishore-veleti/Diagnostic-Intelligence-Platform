@@ -56,6 +56,7 @@ When instructions conflict, use this order:
 7. This root `CLAUDE.md`.
 8. A more specific nested `CLAUDE.md` for implementation details within its directory, provided it does not contradict higher-level sources.
 9. Existing code conventions and tool defaults.
+10. Superpowers workflow skills (Section 6.7) — process technique only, subordinate to every source above.
 
 Do not silently resolve material contradictions. Record the conflict in the active plan and ask the owner when the decision changes scope, architecture, security, data ownership, cost, or public behavior.
 
@@ -341,6 +342,17 @@ The `superpowers` plugin is enabled for this project (`.claude/settings.json`). 
 | `writing-skills` | Authoring a project skill | §20.1 — only through a reviewed work package |
 
 **Plan file location.** `writing-plans` defaults to `docs/superpowers/plans/YYYY-MM-DD-<feature>.md`. That path is acceptable for the technical plan itself, but it is **not** the durable state of record: `Docs/Execution/CURRENT-WORK.md` remains authoritative per Section 7, and must link to the plan file rather than be replaced by it. A resuming agent reads `CURRENT-WORK.md` first.
+
+**Required sequence per approved work package.** Brainstorm only what is unresolved → write the plan → implement one vertical slice → TDD for deterministic behavior → systematic debugging on failure → verification before completion → code review → finish the branch, and only after every required check passes.
+
+**Brainstorming is bounded.** Use it to clarify unresolved details and surface Milestone 0 unknowns. Do not use it to redesign the product or to reopen decisions already settled in `PRD.md` — a settled requirement is an input, not a topic. Genuinely open items belong in `DECISION-QUEUE.md`, and PRD §27 decisions still block (§21.1).
+
+**Two places the plugin acts on the repository without asking** (verified against the installed version, not assumed):
+
+- `executing-plans` opens by creating or verifying a git worktree via `using-git-worktrees`.
+- `finishing-a-development-branch` runs `git push -u origin <feature-branch>`.
+
+Section 10.2 overrides both. No worktree, branch, commit, push, pull request, or merge happens without owner authorization, whatever the skill's own procedure says. The same applies to `subagent-driven-development` and `dispatching-parallel-agents` under Section 9. Claims that the plugin commits frequently on its own are not accurate for this version — the only `git commit` in its skills is an example inside a plan template.
 
 **What the plugin does not supply.** It has no knowledge of the PRD, requirement IDs, capability and schema ownership, the synthetic-data policy, or the intelligence boundary. Those checks stay with this file and Section 26's self-check. A superpowers skill saying work is complete does not satisfy §20.3.
 
