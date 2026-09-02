@@ -1,5 +1,20 @@
 # Diagnostic Intelligence Platform
 
+<p align="center">
+  <img src="Docs/Assets/repo-banner-readme.png" alt="Diagnostic Intelligence Platform — synthetic laboratory services, grounded assistant, capability-owned architecture" width="100%">
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-1B4F72"></a>
+  <img alt="Status: planning and architecture" src="https://img.shields.io/badge/status-planning%20%26%20architecture-0E7C7B">
+  <img alt="Data: synthetic only" src="https://img.shields.io/badge/data-synthetic%20only-2C3E50">
+  <img alt="Not for clinical use" src="https://img.shields.io/badge/clinical-not%20for%20use-8B1E3F">
+  <img alt="Java" src="https://img.shields.io/badge/Java-21%2B-ED8B00?logo=openjdk&logoColor=white">
+  <img alt="Angular" src="https://img.shields.io/badge/Angular-TypeScript-DD0031?logo=angular&logoColor=white">
+  <img alt="PostgreSQL + pgvector" src="https://img.shields.io/badge/PostgreSQL-pgvector-4169E1?logo=postgresql&logoColor=white">
+  <img alt="vLLM" src="https://img.shields.io/badge/model%20runtime-vLLM-0E7C7B">
+</p>
+
 **A healthcare digital diagnostics platform that helps members access laboratory services while enabling operations teams to manage orders, specimens, results, exceptions, and service insights.**
 
 Built to production engineering standards — capability-owned data, versioned contracts, migrations, observability, security review, and CI from the first slice — and run entirely on synthetic data.
@@ -349,6 +364,7 @@ These are planned contracts and should not be expected to work until their miles
 | `SECURITY.md` | Security policy, threat boundaries, vulnerability handling, responsible-AI controls |
 | `Docs/ADR/` | Accepted material architecture and technology decisions |
 | `Docs/API/` | Versioned OpenAPI and event contracts |
+| `Docs/Assets/` | Repository banner, social preview, and icon artwork |
 | `Docs/Execution/` | Durable roadmap, current work, decision queue, risks, resumable session state |
 
 Requirement IDs (`FR-AST-004`, `NFR-PERF-001`, …) are stable and referenced from issues, tests, and pull requests.
