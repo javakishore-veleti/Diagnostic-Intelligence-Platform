@@ -2,7 +2,9 @@
 
 **A healthcare digital diagnostics platform that helps members access laboratory services while enabling operations teams to manage orders, specimens, results, exceptions, and service insights.**
 
-> **Demonstration project.** Every person, order, specimen, and result here is synthetic. Built for education and portfolio demonstration only — not a clinical product, no diagnostic or treatment recommendations, and no claim of HIPAA compliance, CLIA certification, or FDA clearance. Vendor-neutral, and not derived from any real laboratory company's systems, data, or documents.
+Built to production engineering standards — capability-owned data, versioned contracts, migrations, observability, security review, and CI from the first slice — and run entirely on synthetic data.
+
+> **Synthetic data, non-clinical.** Every person, order, specimen, and result is generated. The platform is not cleared or intended for clinical use, makes no diagnostic or treatment recommendation, and claims no HIPAA compliance, CLIA certification, or FDA clearance. It is vendor-neutral and derived from no real laboratory company's systems, data, or documents.
 
 ---
 
@@ -28,7 +30,7 @@ Browse available tests, see what was ordered and why, follow a specimen from col
 
 ### For laboratory operations — investigation, not archaeology
 
-See every order and specimen end to end, triage exceptions and delays as they emerge, search across the whole operation, administer the test catalog and the knowledge library, generate demonstration datasets, and review the quality of the intelligence layer itself.
+See every order and specimen end to end, triage exceptions and delays as they emerge, search across the whole operation, administer the test catalog and the knowledge library, generate and refresh synthetic datasets, and review the quality of the intelligence layer itself.
 
 ### For both — an assistant that shows its work
 
