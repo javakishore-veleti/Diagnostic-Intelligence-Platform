@@ -206,6 +206,7 @@ diagnostic-intelligence-platform/
 ├── README.md
 ├── PRD.md                          Product requirements — the source of truth
 ├── CLAUDE.md                       Operating guide for coding agents
+├── .claude/settings.json           Shared Claude Code config — enabled plugins
 ├── REQUIREMENTS-ARCHITECTURE.md    Architecture constraints and views
 ├── LOCAL-DEVELOPMENT.md            Setup, ports, profiles, troubleshooting
 ├── SECURITY.md                     Security posture and reporting

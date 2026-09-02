@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Claude Code — commit shared project config, never local or personal overrides
+.claude/settings.local.json
+.claude/*.local.json
