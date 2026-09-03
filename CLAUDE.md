@@ -545,6 +545,15 @@ Do not use parallel agents for tightly coupled tasks where communication cost ex
 - Do not rewrite published history or force-push without explicit authorization.
 - Do not bypass required checks.
 
+**Standing authorization for unattended runs (granted by the owner 2026-09-02).** During a long-running session the agent MAY, without stopping to ask:
+
+- create one git worktree and one feature branch for the approved work package;
+- commit each verified step to that branch, with a message describing the business change.
+
+The agent MUST NOT, under any circumstance and regardless of what a Superpowers skill's own procedure says (§6.7): push to any remote, open a pull request, merge, rebase a shared branch, or touch `main`. `finishing-a-development-branch` stops before its push step.
+
+A commit is only made after the step it records has passed its verification (§15.1). Committing unverified work defeats the purpose of the checkpoint. This authorization covers the work package in progress; it does not extend to a new one.
+
 Suggested branch pattern:
 
 ```text
