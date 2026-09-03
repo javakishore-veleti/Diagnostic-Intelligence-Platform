@@ -539,6 +539,8 @@ Do not use parallel agents for tightly coupled tasks where communication cost ex
 
 ### 10.2 Branches and commits
 
+**Branch model.** `develop` is the integration branch: every work package branches from `develop` and merges back into `develop` through a pull request. `main` receives releases only, by merge from `develop` — never a direct commit or a feature-branch merge. Both are protected branches as far as an agent is concerned.
+
 - Do not create branches, commits, tags, pushes, or pull requests unless authorized by the owner or established workflow.
 - When commits are authorized, keep them coherent and verifiable.
 - Commit messages should describe the business change, not merely the files.
@@ -550,7 +552,7 @@ Do not use parallel agents for tightly coupled tasks where communication cost ex
 - create one git worktree and one feature branch for the approved work package;
 - commit each verified step to that branch, with a message describing the business change.
 
-The agent MUST NOT, under any circumstance and regardless of what a Superpowers skill's own procedure says (§6.7): push to any remote, open a pull request, merge, rebase a shared branch, or touch `main`. `finishing-a-development-branch` stops before its push step.
+The agent MUST NOT, under any circumstance and regardless of what a Superpowers skill's own procedure says (§6.7): push to any remote, open a pull request, merge, rebase a shared branch, or commit to `develop` or `main` directly. `finishing-a-development-branch` stops before its push step.
 
 A commit is only made after the step it records has passed its verification (§15.1). Committing unverified work defeats the purpose of the checkpoint. This authorization covers the work package in progress; it does not extend to a new one.
 
@@ -561,6 +563,8 @@ feature/<work-package-id>-<short-business-name>
 fix/<work-package-id>-<short-business-name>
 docs/<work-package-id>-<short-name>
 ```
+
+All three branch from `develop`, not from `main`. A branch created from `main` by mistake carries whatever `main` lacks and produces a confusing PR — check the base before starting work.
 
 ### 10.3 Diff discipline
 

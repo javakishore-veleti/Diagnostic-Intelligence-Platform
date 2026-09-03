@@ -389,6 +389,7 @@ This is an independent, vendor-neutral project informed by general laboratory-se
 
 Full contribution guidance is defined during Milestone 0. Until then:
 
+- Branch from `develop`, and open pull requests against `develop`. `main` receives releases only.
 - Read `PRD.md` and `CLAUDE.md` before proposing implementation.
 - Map changes to stable PRD requirement IDs.
 - Use synthetic data only.
